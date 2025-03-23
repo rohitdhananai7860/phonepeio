@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Google Login</title>
+  <!-- Load the Google Identity Services library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f7f7f7;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <!-- Container to initialize the Google Sign-In -->
+  <div id="g_id_onload"
+       data-client_id="389644505990-etv8f86mjtemrgccsepuu077agfhhv0b.apps.googleusercontent.com"
+       data-context="signin"
+       data-callback="handleCredentialResponse"
+       data-auto_prompt="false">
+  </div>
+  
+  <!-- Google Sign-In button -->
+  <div class="g_id_signin"
+       data-type="standard"
+       data-shape="rectangular"
+       data-theme="outline"
+       data-text="signin_with"
+       data-size="large">
+  </div>
+
+  <script>
+    // Callback function that is invoked after a successful sign-in
+    function handleCredentialResponse(response) {
+      console.log("Encoded JWT ID token:", response.credential);
+      alert("Sign-in successful! Check the console for the token.");
+      // You can send the JWT token to your server for verification here.
+    }
+  </script>
+</body>
+</html>
