@@ -1,47 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Google Login</title>
-  <!-- Load the Google Identity Services library -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatBot</title>
   <style>
-    body, html {
-      height: 100%;
+    /* Import font */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    /* Global Reset */
+    * {
+      box-sizing: border-box;
       margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
       background-color: #f7f7f7;
-      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .chatBot {
+      border: 3px solid #2F8D46;
+      border-radius: 10px;
+      margin: 20px;
+      overflow: hidden;
+      width: 500px;
+      max-width: 100%;
+      height: 600px;
+      background: #fff url('gfg-gg-logo.svg') no-repeat center;
+      background-size: contain;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: #2F8D46;
+      text-align: center;
+      padding: 10px 0;
+      position: relative;
+    }
+
+    header h2 {
+      color: #fff;
+      margin: 0;
+    }
+
+    #cross {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #fff;
+      font-weight: bolder;
+      font-size: 28px;
+    }
+
+    #cross:hover {
+      color: red;
+      transition: all 0.5s;
+    }
+
+    .chatbox {
+      flex: 1;
+      padding: 15px;
+      list-style: none;
+      overflow-y: auto;
+      background-color: #fff;
+    }
+
+    .chatbox li {
+      margin-bottom: 10px;
+    }
+
+    .chat p {
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    .chat-outgoing p {
+      background-color: #162887;
+      align-self: flex-end;
+      color: #fff;
+    }
+
+    .chat-incoming p {
+      background-color: #eaeaea;
+      color: #000;
+      align-self: flex-start;
+    }
+
+    .chat p.error {
+      color: #fff;
+      background-color: #ff3737e8;
+    }
+
+    .chat-input {
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      background: #fff;
+    }
+
+    .chat-input textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      resize: none;
+      outline: none;
+      background-color: #dcdcdc85;
+      font-size: 16px;
+      color: green;
+      font-weight: 600;
+      margin-bottom: 10px;
+      min-height: 70px;
+    }
+
+    #sendBTN {
+      width: 100%;
+      padding: 8px;
+      border: 0;
+      outline: none;
+      font-size: 20px;
+      font-weight: 600;
+      border-radius: 7px;
+      background-color: #2F8D46;
+      cursor: pointer;
+      color: white;
+    }
+
+    .lastMessage {
+      margin-top: 20px;
+      font-size: 25px;
+      font-weight: 600;
+      color: darkgreen;
+      text-align: center;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 600px) {
+      .chatBot {
+        width: 90%;
+        height: 80vh;
+      }
+      #sendBTN {
+        font-size: 18px;
+      }
+      header h2 {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Container to initialize the Google Sign-In -->
-  <div id="g_id_onload"
-       data-client_id="389644505990-etv8f86mjtemrgccsepuu077agfhhv0b.apps.googleusercontent.com"
-       data-context="signin"
-       data-callback="handleCredentialResponse"
-       data-auto_prompt="false">
-  </div>
-  
-  <!-- Google Sign-In button -->
-  <div class="g_id_signin"
-       data-type="standard"
-       data-shape="rectangular"
-       data-theme="outline"
-       data-text="signin_with"
-       data-size="large">
+  <div class="chatBot">
+    <header>
+      <h2>ChatBot</h2>
+      <span id="cross" onclick="cancel()">×</span>
+    </header>
+    <ul class="chatbox">
+      <li class="chat-incoming chat">
+        <p>Hey! How can I assist you today?</p>
+      </li>
+    </ul>
+    <div class="chat-input">
+      <textarea placeholder="Enter a message..."></textarea>
+      <button id="sendBTN">Send</button>
+    </div>
   </div>
 
   <script>
-    // Callback function that is invoked after a successful sign-in
-    function handleCredentialResponse(response) {
-      console.log("Encoded JWT ID token:", response.credential);
-      alert("Sign-in successful! Check the console for the token.");
-      // You can send the JWT token to your server for verification here.
+    // Get DOM elements
+    const chatInput = document.querySelector('.chat-input textarea');
+    const sendChatBtn = document.getElementById('sendBTN');
+    const chatbox = document.querySelector('.chatbox');
+
+    let userMessage = "";
+    // OpenAI API Key (Note: Exposing your API key is not secure for production)
+    const API_KEY = "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";
+
+    // Create a chat list item (li)
+    const createChatLi = (message, className) => {
+      const chatLi = document.createElement("li");
+      chatLi.classList.add("chat", className);
+      chatLi.innerHTML = `<p>${message}</p>`;
+      return chatLi;
+    };
+
+    // Generate response from OpenAI API and update the incoming chat item
+    const generateResponse = (incomingChatLi) => {
+      const API_URL = "https://api.openai.com/v1/chat/completions";
+      const messageElement = incomingChatLi.querySelector("p");
+
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          "model": "gpt-3.5-turbo",
+          "messages": [
+            { role: "user", content: userMessage }
+          ]
+        })
+      };
+
+      fetch(API_URL, requestOptions)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return res.json();
+        })
+        .then(data => {
+          // Check the response structure and update accordingly
+          messageElement.textContent = data.choices[0].message.content;
+        })
+        .catch((error) => {
+          messageElement.classList.add("error");
+          messageElement.textContent = "Oops! Something went wrong. Please try again!";
+        })
+        .finally(() => {
+          chatbox.scrollTo(0, chatbox.scrollHeight);
+        });
+    };
+
+    // Handle sending chat messages
+    const handleChat = () => {
+      userMessage = chatInput.value.trim();
+      if (!userMessage) return;
+
+      // Append user's message
+      chatbox.appendChild(createChatLi(userMessage, "chat-outgoing"));
+      chatbox.scrollTo(0, chatbox.scrollHeight);
+      chatInput.value = "";
+
+      // Simulate "thinking" and then generate a response
+      setTimeout(() => {
+        const incomingChatLi = createChatLi("Thinking...", "chat-incoming");
+        chatbox.appendChild(incomingChatLi);
+        chatbox.scrollTo(0, chatbox.scrollHeight);
+        generateResponse(incomingChatLi);
+      }, 600);
+    };
+
+    sendChatBtn.addEventListener("click", handleChat);
+    chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleChat();
+      }
+    });
+
+    // Cancel (close) the chatbot
+    function cancel() {
+      const chatbotElement = document.querySelector(".chatBot");
+      if (chatbotElement.style.display !== "none") {
+        chatbotElement.style.display = "none";
+        const lastMsg = document.createElement("p");
+        lastMsg.textContent = "Thanks for using our Chatbot!";
+        lastMsg.classList.add("lastMessage");
+        document.body.appendChild(lastMsg);
+      }
     }
   </script>
 </body>
